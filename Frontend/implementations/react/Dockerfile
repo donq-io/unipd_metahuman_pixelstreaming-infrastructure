@@ -1,12 +1,17 @@
 # Multi-stage Dockerfile for Pixel Streaming React Frontend
 # syntax=docker/dockerfile:1
 
-# Build arguments for metadata
+# Build arguments for metadata and npm token
 ARG BUILD_DATE
 ARG VCS_REF
+ARG NPM_TOKEN
 
 # Stage 1: Build React app
 FROM node:18.17.0-alpine AS builder
+
+# Pass NPM_TOKEN as build arg and set as env var
+ARG NPM_TOKEN
+ENV NPM_TOKEN=${NPM_TOKEN}
 
 # Set working directory
 WORKDIR /app
@@ -14,12 +19,10 @@ WORKDIR /app
 # Copy package files for dependency resolution
 COPY Frontend/implementations/react/package*.json ./
 
-# Configure npm registry and install dependencies using buildkit secrets
-# This approach works with CI/CD environments by using environment variables
-RUN --mount=type=secret,id=npm_token \
-    export NPM_TOKEN=$(cat /run/secrets/npm_token) && \
-    echo "@donq.io:registry=https://npm.donq.org/" > ~/.npmrc && \
-    echo "//npm.donq.org/:_authToken=\${NPM_TOKEN}" >> ~/.npmrc && \
+# Configure npm registry and install dependencies
+# Create .npmrc with proper token substitution
+RUN echo "@donq.io:registry=https://npm.donq.org/" > ~/.npmrc && \
+    echo "//npm.donq.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc && \
     npm ci && \
     rm ~/.npmrc
 
