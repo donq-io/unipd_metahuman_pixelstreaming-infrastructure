@@ -1,14 +1,27 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    Config,
-    AllSettings,
-    PixelStreaming
-} from '@epicgames-ps/lib-pixelstreamingfrontend-ue5.4';
+
+// Import with error handling
+let Config: any, AllSettings: any, PixelStreaming: any;
+try {
+    const pixelStreamingModule = require('@epicgames-ps/lib-pixelstreamingfrontend-ue5.4');
+    Config = pixelStreamingModule.Config;
+    AllSettings = pixelStreamingModule.AllSettings;
+    PixelStreaming = pixelStreamingModule.PixelStreaming;
+    
+    // Validate that the imports worked
+    if (!Config || !PixelStreaming) {
+        throw new Error('Failed to import required PixelStreaming modules');
+    }
+} catch (error) {
+    console.error('Error importing PixelStreaming library:', error);
+    // Provide fallback or rethrow
+    throw error;
+}
 
 export interface PixelStreamingWrapperProps {
-    initialSettings?: Partial<AllSettings>;
+    initialSettings?: Partial<any>; // Using any instead of AllSettings as fallback
 }
 
 export const PixelStreamingWrapper = ({
@@ -18,36 +31,66 @@ export const PixelStreamingWrapper = ({
     const videoParent = useRef<HTMLDivElement>(null);
 
     // Pixel streaming library instance is stored into this state variable after initialization:
-    const [pixelStreaming, setPixelStreaming] = useState<PixelStreaming>();
+    const [pixelStreaming, setPixelStreaming] = useState<any>();
     
     // A boolean state variable that determines if the Click to play overlay is shown:
     const [clickToPlayVisible, setClickToPlayVisible] = useState(false);
+    
+    // Error state
+    const [error, setError] = useState<string | null>(null);
 
     // Run on component mount:
     useEffect(() => {
         if (videoParent.current) {
-            // Attach Pixel Streaming library to videoParent element:
-            const config = new Config({ initialSettings });
-            const streaming = new PixelStreaming(config, {
-                videoElementParent: videoParent.current
-            });
-            
-            // register a playStreamRejected handler to show Click to play overlay if needed:
-            streaming.addEventListener('playStreamRejected', () => {
-                setClickToPlayVisible(true);
-            });
+            try {
+                // Validate modules before use
+                if (!Config || !PixelStreaming) {
+                    throw new Error('PixelStreaming modules not available');
+                }
+                
+                // Attach Pixel Streaming library to videoParent element:
+                const config = new Config({ initialSettings });
+                const streaming = new PixelStreaming(config, {
+                    videoElementParent: videoParent.current
+                });
+                
+                // register a playStreamRejected handler to show Click to play overlay if needed:
+                streaming.addEventListener('playStreamRejected', () => {
+                    setClickToPlayVisible(true);
+                });
 
-            // Save the library instance into component state so that it can be accessed later:
-            setPixelStreaming(streaming);
+                // Save the library instance into component state so that it can be accessed later:
+                setPixelStreaming(streaming);
 
-            // Clean up on component unmount:
-            return () => {
-                try {
-                    streaming.disconnect();
-                } catch {}
-            };
+                // Clean up on component unmount:
+                return () => {
+                    try {
+                        streaming.disconnect();
+                    } catch (cleanupError) {
+                        console.warn('Error during cleanup:', cleanupError);
+                    }
+                };
+            } catch (initError) {
+                console.error('Error initializing PixelStreaming:', initError);
+                setError(`Failed to initialize PixelStreaming: ${initError.message}`);
+            }
         }
     }, []);
+
+    // Show error state if there's an error
+    if (error) {
+        return (
+            <div style={{ 
+                padding: '20px', 
+                color: 'red', 
+                fontFamily: 'monospace',
+                textAlign: 'center'
+            }}>
+                <h3>PixelStreaming Error</h3>
+                <p>{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -78,8 +121,12 @@ export const PixelStreamingWrapper = ({
                         cursor: 'pointer'
                     }}
                     onClick={() => {
-                        pixelStreaming?.play();
-                        setClickToPlayVisible(false);
+                        try {
+                            pixelStreaming?.play();
+                            setClickToPlayVisible(false);
+                        } catch (playError) {
+                            console.error('Error playing stream:', playError);
+                        }
                     }}
                 >
                     <div>Click to play</div>
@@ -88,19 +135,37 @@ export const PixelStreamingWrapper = ({
             {/* Test buttons for emitting messages */}
             <div style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 10 }}>
                 <button
-                    onClick={() => pixelStreaming?.emitUIInteraction({ test: 'ui-interaction', time: Date.now() })}
+                    onClick={() => {
+                        try {
+                            pixelStreaming?.emitUIInteraction({ test: 'ui-interaction', time: Date.now() });
+                        } catch (error) {
+                            console.error('Error emitting UI interaction:', error);
+                        }
+                    }}
                     style={{ marginRight: 8 }}
                 >
                     Emit UIInteraction
                 </button>
                 <button
-                    onClick={() => pixelStreaming?.emitCommand({ test: 'command', value: 42 })}
+                    onClick={() => {
+                        try {
+                            pixelStreaming?.emitCommand({ test: 'command', value: 42 });
+                        } catch (error) {
+                            console.error('Error emitting command:', error);
+                        }
+                    }}
                     style={{ marginRight: 8 }}
                 >
                     Emit Command
                 </button>
                 <button
-                    onClick={() => pixelStreaming?.emitConsoleCommand('stat fps')}
+                    onClick={() => {
+                        try {
+                            pixelStreaming?.emitConsoleCommand('stat fps');
+                        } catch (error) {
+                            console.error('Error emitting console command:', error);
+                        }
+                    }}
                 >
                     Emit ConsoleCommand
                 </button>
