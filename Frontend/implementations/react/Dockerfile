@@ -1,10 +1,19 @@
 # Multi-stage Dockerfile for Pixel Streaming React Frontend
 # syntax=docker/dockerfile:1
 
-# Build arguments for metadata and npm token
+# Build arguments for metadata and configuration
 ARG BUILD_DATE
 ARG VCS_REF
 ARG NPM_TOKEN
+
+# Vite environment variables for signalling server configuration
+ARG VITE_SIGNALLING_SERVER_URL
+ARG VITE_SIGNALLING_SERVER_HTTP  
+ARG VITE_SIGNALLING_HOST
+ARG VITE_SIGNALLING_WS_PORT
+ARG VITE_SIGNALLING_HTTP_PORT
+ARG VITE_DEBUG
+ARG VITE_VERBOSE_LOGGING
 
 # Stage 1: Build React app
 FROM node:18.17.0-alpine AS builder
@@ -12,6 +21,23 @@ FROM node:18.17.0-alpine AS builder
 # Pass NPM_TOKEN as build arg and set as env var
 ARG NPM_TOKEN
 ENV NPM_TOKEN=${NPM_TOKEN}
+
+# Pass Vite environment variables
+ARG VITE_SIGNALLING_SERVER_URL
+ARG VITE_SIGNALLING_SERVER_HTTP
+ARG VITE_SIGNALLING_HOST
+ARG VITE_SIGNALLING_WS_PORT
+ARG VITE_SIGNALLING_HTTP_PORT
+ARG VITE_DEBUG
+ARG VITE_VERBOSE_LOGGING
+
+ENV VITE_SIGNALLING_SERVER_URL=${VITE_SIGNALLING_SERVER_URL}
+ENV VITE_SIGNALLING_SERVER_HTTP=${VITE_SIGNALLING_SERVER_HTTP}
+ENV VITE_SIGNALLING_HOST=${VITE_SIGNALLING_HOST}
+ENV VITE_SIGNALLING_WS_PORT=${VITE_SIGNALLING_WS_PORT}
+ENV VITE_SIGNALLING_HTTP_PORT=${VITE_SIGNALLING_HTTP_PORT}
+ENV VITE_DEBUG=${VITE_DEBUG}
+ENV VITE_VERBOSE_LOGGING=${VITE_VERBOSE_LOGGING}
 
 # Set working directory
 WORKDIR /app
@@ -54,16 +80,13 @@ LABEL org.opencontainers.image.vendor="University of Padova"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.source="https://github.com/your-repo/unipd_metahuman_pixelstreamingInfrastructure"
 
-# Install envsubst for environment variable substitution
-RUN apk add --no-cache gettext
-
 # Copy built React app from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Create nginx configuration template
 RUN mkdir -p /etc/nginx/templates
 
-# Create nginx config template that supports environment variables
+# Create nginx config template
 COPY <<EOF /etc/nginx/templates/default.conf.template
 server {
     listen 80;
@@ -102,36 +125,6 @@ server {
     }
 }
 EOF
-
-# Create environment substitution script
-COPY <<'EOF' /docker-entrypoint.d/40-generate-config.sh
-#!/bin/sh
-set -e
-
-# Default values if environment variables are not set
-export REACT_APP_SIGNALLING_SERVER=${REACT_APP_SIGNALLING_SERVER:-ws://localhost:8888}
-export REACT_APP_SIGNALLING_HTTP=${REACT_APP_SIGNALLING_HTTP:-http://localhost:8080}
-
-# Create runtime config file that can be loaded by the frontend
-cat > /usr/share/nginx/html/runtime-config.js << EOL
-window.RUNTIME_CONFIG = {
-    SIGNALLING_SERVER_URL: '${REACT_APP_SIGNALLING_SERVER}',
-    SIGNALLING_SERVER_HTTP: '${REACT_APP_SIGNALLING_HTTP}',
-    AUTO_FETCH_CONFIG: true,
-    DEBUG: ${DEBUG:-false}
-};
-EOL
-
-echo "Generated runtime configuration:"
-cat /usr/share/nginx/html/runtime-config.js
-EOF
-
-RUN chmod +x /docker-entrypoint.d/40-generate-config.sh
-
-# Set environment variables with defaults
-ENV REACT_APP_SIGNALLING_SERVER=ws://localhost:8888
-ENV REACT_APP_SIGNALLING_HTTP=http://localhost:8080
-ENV DEBUG=false
 
 # Expose port 80
 EXPOSE 80
