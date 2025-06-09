@@ -39,8 +39,42 @@ class ErrorBoundary extends React.Component<
     }
 }
 
+// Interface for runtime configuration
+interface RuntimeConfig {
+    SIGNALLING_SERVER_URL?: string;
+    SIGNALLING_SERVER_HTTP?: string;
+    AUTO_FETCH_CONFIG?: boolean;
+    DEBUG?: boolean;
+}
+
+// Function to get runtime configuration
+const getRuntimeConfig = (): RuntimeConfig => {
+    // Check if runtime config was injected by Docker
+    const windowConfig = (window as any).RUNTIME_CONFIG;
+    if (windowConfig) {
+        console.log('Using runtime config from window:', windowConfig);
+        return windowConfig;
+    }
+
+    // Fallback to default configuration
+    return {
+        SIGNALLING_SERVER_URL: undefined,
+        SIGNALLING_SERVER_HTTP: undefined,
+        AUTO_FETCH_CONFIG: true,
+        DEBUG: false
+    };
+};
+
 // Function to get the appropriate websocket URL based on environment
 const getSignallingServerUrl = (): string => {
+    const runtimeConfig = getRuntimeConfig();
+    
+    // If explicitly configured via runtime config, use that
+    if (runtimeConfig.SIGNALLING_SERVER_URL) {
+        console.log('Using runtime config signalling server:', runtimeConfig.SIGNALLING_SERVER_URL);
+        return runtimeConfig.SIGNALLING_SERVER_URL;
+    }
+
     // Check if we're in development (localhost)
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' || 
@@ -48,28 +82,51 @@ const getSignallingServerUrl = (): string => {
 
     if (isLocalhost) {
         // Development environment - use localhost
+        console.log('Development environment detected, using localhost');
         return 'ws://localhost:80';
     } else {
         // Production/staging environment - use the current host
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.hostname;
-        // Common ports for websocket signalling servers
-        const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
         
-        // Try to connect to the signalling server on the same host
-        // You may need to adjust the port based on your actual signalling server configuration
-        return `${protocol}//${host}:8888`;
+        // For staging/production, you may need to adjust these ports based on your setup:
+        // Common configurations:
+        // - Signalling server on port 8888 (typical for UE Pixel Streaming)
+        // - Signalling server on port 80/443 (if using a reverse proxy)
+        // - Custom port based on your infrastructure
+        
+        let signallingUrl: string;
+        
+        // Check for common staging/production patterns
+        if (host.includes('staging') || host.includes('dev')) {
+            // Staging environment - might use different port
+            signallingUrl = `${protocol}//${host}:8888`;
+        } else {
+            // Production environment - might use standard ports with reverse proxy
+            signallingUrl = `${protocol}//${host}:8888`;
+        }
+        
+        console.log('Production/staging environment detected:', {
+            host,
+            protocol,
+            signallingUrl
+        });
+        
+        return signallingUrl;
     }
 };
 
 export const App = () => {
     const signallingServerUrl = getSignallingServerUrl();
+    const runtimeConfig = getRuntimeConfig();
     
     console.log('Pixel Streaming Configuration:', {
         url: window.location.href,
         hostname: window.location.hostname,
         protocol: window.location.protocol,
-        signallingServer: signallingServerUrl
+        signallingServer: signallingServerUrl,
+        runtimeConfig,
+        userAgent: navigator.userAgent
     });
 
     return (
