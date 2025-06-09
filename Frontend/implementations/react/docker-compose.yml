@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # React Frontend Only
+  pixel-streaming-frontend:
+    build:
+      context: ../../..  # Build from repository root to access all dependencies
+      dockerfile: Frontend/implementations/react/Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      # Configure connection to external SignallingWebServer
+      # Modify these URLs to point to your running SignallingWebServer
+      - REACT_APP_SIGNALLING_SERVER=ws://localhost:8888
+      - REACT_APP_SIGNALLING_HTTP=http://localhost:8080
+      - DEBUG=true
+    networks:
+      - pixel-streaming
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+networks:
+  pixel-streaming:
+    driver: bridge 
