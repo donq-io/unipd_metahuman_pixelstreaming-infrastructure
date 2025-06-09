@@ -1,66 +1,37 @@
 # Multi-stage Dockerfile for Pixel Streaming React Frontend
+# syntax=docker/dockerfile:1
 
 # Build arguments for metadata
 ARG BUILD_DATE
 ARG VCS_REF
 
-# Stage 1: Build dependencies and React app
+# Stage 1: Build React app
 FROM node:18.17.0-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files for dependency resolution (better caching)
-COPY Frontend/library/package*.json ./library/
-COPY Frontend/ui-library/package*.json ./ui-library/
-COPY Frontend/implementations/react/package*.json ./react/
+# Copy package files for dependency resolution
+COPY Frontend/implementations/react/package*.json ./
 
-# Install dependencies for library
-WORKDIR /app/library
-RUN npm ci
+# Configure npm registry and install dependencies using buildkit secrets
+# This approach works with CI/CD environments by using environment variables
+RUN --mount=type=secret,id=npm_token \
+    export NPM_TOKEN=$(cat /run/secrets/npm_token) && \
+    echo "@donq.io:registry=https://npm.donq.org/" > ~/.npmrc && \
+    echo "//npm.donq.org/:_authToken=\${NPM_TOKEN}" >> ~/.npmrc && \
+    npm ci && \
+    rm ~/.npmrc
 
-# Install dependencies for ui-library  
-WORKDIR /app/ui-library
-RUN npm ci
+# Copy source code and config files
+COPY Frontend/implementations/react/src/ ./src/
+COPY Frontend/implementations/react/vite.config.ts ./
+COPY Frontend/implementations/react/tsconfig*.json ./
+COPY Frontend/implementations/react/index.html ./
 
-# Install dependencies for React implementation
-WORKDIR /app/react
-RUN npm ci
-
-# Copy source code (avoiding node_modules conflicts by copying after install)
-WORKDIR /app
-# Copy essential build files that we know exist
-COPY Frontend/library/src/ ./library/src/
-COPY Frontend/library/webpack*.js ./library/
-COPY Frontend/library/tsconfig*.json ./library/
-
-COPY Frontend/ui-library/src/ ./ui-library/src/
-COPY Frontend/ui-library/webpack*.js ./ui-library/
-COPY Frontend/ui-library/tsconfig*.json ./ui-library/
-
-COPY Frontend/implementations/react/src/ ./react/src/
-COPY Frontend/implementations/react/webpack*.js ./react/
-COPY Frontend/implementations/react/tsconfig*.json ./react/
-
-# Build library
-WORKDIR /app/library
-RUN npm run build-dev
-# Create global link for library
-RUN npm link
-
-# Build ui-library and link to library
-WORKDIR /app/ui-library
-RUN npm link @epicgames-ps/lib-pixelstreamingfrontend-ue5.4
-RUN npm run build-dev
-# Create global link for ui-library
-RUN npm link
-
-# Build React app and link dependencies
-WORKDIR /app/react
-RUN npm link @epicgames-ps/lib-pixelstreamingfrontend-ue5.4 @epicgames-ps/lib-pixelstreamingfrontend-ui-ue5.4
-# Create output directory and modify webpack output for containerized build
+# Create output directory and modify vite output for containerized build
 RUN mkdir -p dist && \
-    sed -i 's|path.resolve(__dirname, '\''../../../SignallingWebServer/Public'\'')|path.resolve(__dirname, '\''dist'\'')|g' webpack.common.js && \
+    sed -i 's|outDir: '\''../../../SignallingWebServer/Public'\''|outDir: '\''dist'\''|g' vite.config.ts && \
     npm run build
 
 # Stage 2: Serve with nginx
@@ -84,7 +55,7 @@ LABEL org.opencontainers.image.source="https://github.com/your-repo/unipd_metahu
 RUN apk add --no-cache gettext
 
 # Copy built React app from builder stage
-COPY --from=builder /app/react/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Create nginx configuration template
 RUN mkdir -p /etc/nginx/templates

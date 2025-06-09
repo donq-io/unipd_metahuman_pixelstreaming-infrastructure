@@ -14,6 +14,9 @@ build/
 .env.test.local
 .env.production.local
 
+# NPM credentials
+.npmrc.local
+
 # IDE files
 .vscode/
 .idea/

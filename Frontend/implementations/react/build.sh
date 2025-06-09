@@ -44,7 +44,8 @@ case "${1:-help}" in
         log_info "Building Docker image: ${IMAGE_NAME}:${TAG}"
         docker build -f "${DOCKERFILE_PATH}" -t "${IMAGE_NAME}:${TAG}" . \
             --build-arg BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
-            --build-arg VCS_REF="$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
+            --build-arg VCS_REF="$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')" \
+            --build-arg NPM_TOKEN="$(cat .env | grep NPM_TOKEN | cut -d '=' -f2)"
         log_success "Image built successfully: ${IMAGE_NAME}:${TAG}"
         ;;
     

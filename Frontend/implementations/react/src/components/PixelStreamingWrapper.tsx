@@ -1,8 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Config, AllSettings, PixelStreaming } from '@donq.io/lib-pixelstreamingfrontend-ue5.4';
-
+import { useEffect, useRef, useState } from 'react';
+import { Config, PixelStreaming } from '@donq.io/lib-pixelstreamingfrontend-ue5.4';
 
 export interface PixelStreamingWrapperProps {
     initialSettings?: Partial<any>; // Using any instead of AllSettings as fallback
