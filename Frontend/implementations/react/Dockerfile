@@ -10,27 +10,38 @@ FROM node:18.17.0-alpine AS builder
 # Set working directory
 WORKDIR /app
 
-# Copy package files for dependency resolution
+# Copy package files for dependency resolution (better caching)
 COPY Frontend/library/package*.json ./library/
 COPY Frontend/ui-library/package*.json ./ui-library/
 COPY Frontend/implementations/react/package*.json ./react/
 
 # Install dependencies for library
 WORKDIR /app/library
-RUN npm ci --only=production
+RUN npm ci
 
 # Install dependencies for ui-library  
 WORKDIR /app/ui-library
-RUN npm ci --only=production
+RUN npm ci
 
 # Install dependencies for React implementation
 WORKDIR /app/react
-RUN npm ci --only=production
+RUN npm ci
 
-# Copy source code
-COPY Frontend/library/ /app/library/
-COPY Frontend/ui-library/ /app/ui-library/
-COPY Frontend/implementations/react/ /app/react/
+# Copy source code (avoiding node_modules conflicts by copying after install)
+WORKDIR /app
+COPY Frontend/library/src/ ./library/src/
+COPY Frontend/library/types/ ./library/types/
+COPY Frontend/library/webpack*.js ./library/
+COPY Frontend/library/tsconfig.json ./library/
+
+COPY Frontend/ui-library/src/ ./ui-library/src/
+COPY Frontend/ui-library/types/ ./ui-library/types/
+COPY Frontend/ui-library/webpack*.js ./ui-library/
+COPY Frontend/ui-library/tsconfig.json ./ui-library/
+
+COPY Frontend/implementations/react/src/ ./react/src/
+COPY Frontend/implementations/react/webpack*.js ./react/
+COPY Frontend/implementations/react/tsconfig.json ./react/
 
 # Build library
 WORKDIR /app/library
