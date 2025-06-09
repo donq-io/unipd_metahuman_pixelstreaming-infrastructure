@@ -1,5 +1,5 @@
 {
-    "name": "@epicgames-ps/lib-pixelstreamingfrontend-ue5.4",
+    "name": "@donq.io/lib-pixelstreamingfrontend-ue5.4",
     "version": "1.1.5",
     "description": "Frontend library for Unreal Engine 5.4 Pixel Streaming",
     "main": "dist/lib-pixelstreamingfrontend.js",
@@ -36,9 +36,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/EpicGamesExt/PixelStreamingInfrastructure.git"
+        "url": "https://github.com/donq-io/unipd_metahuman_pixelstreaming-infrastructure"
     },
-    "author": "Epic Games",
+    "author": "DonQ",
     "license": "MIT",
     "publishConfig": {
         "access": "public"

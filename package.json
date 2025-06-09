@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@donq.io/lib-pixelstreamingfrontend-ue5.4": "^1.1.5"
+  }
+}

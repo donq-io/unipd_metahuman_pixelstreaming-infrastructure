@@ -1,24 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 import React, { useEffect, useRef, useState } from 'react';
+import { Config, AllSettings, PixelStreaming } from '@donq.io/lib-pixelstreamingfrontend-ue5.4';
 
-// Import with error handling
-let Config: any, AllSettings: any, PixelStreaming: any;
-try {
-    const pixelStreamingModule = require('@epicgames-ps/lib-pixelstreamingfrontend-ue5.4');
-    Config = pixelStreamingModule.Config;
-    AllSettings = pixelStreamingModule.AllSettings;
-    PixelStreaming = pixelStreamingModule.PixelStreaming;
-    
-    // Validate that the imports worked
-    if (!Config || !PixelStreaming) {
-        throw new Error('Failed to import required PixelStreaming modules');
-    }
-} catch (error) {
-    console.error('Error importing PixelStreaming library:', error);
-    // Provide fallback or rethrow
-    throw error;
-}
 
 export interface PixelStreamingWrapperProps {
     initialSettings?: Partial<any>; // Using any instead of AllSettings as fallback
@@ -43,11 +27,6 @@ export const PixelStreamingWrapper = ({
     useEffect(() => {
         if (videoParent.current) {
             try {
-                // Validate modules before use
-                if (!Config || !PixelStreaming) {
-                    throw new Error('PixelStreaming modules not available');
-                }
-                
                 // Attach Pixel Streaming library to videoParent element:
                 const config = new Config({ initialSettings });
                 const streaming = new PixelStreaming(config, {
@@ -70,7 +49,7 @@ export const PixelStreamingWrapper = ({
                         console.warn('Error during cleanup:', cleanupError);
                     }
                 };
-            } catch (initError) {
+            } catch (initError: any) {
                 console.error('Error initializing PixelStreaming:', initError);
                 setError(`Failed to initialize PixelStreaming: ${initError.message}`);
             }
