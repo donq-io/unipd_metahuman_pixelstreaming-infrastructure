@@ -1,5 +1,9 @@
 # Multi-stage Dockerfile for Pixel Streaming React Frontend
 
+# Build arguments for metadata
+ARG BUILD_DATE
+ARG VCS_REF
+
 # Stage 1: Build dependencies and React app
 FROM node:18.17.0-alpine AS builder
 
@@ -31,19 +35,40 @@ COPY Frontend/implementations/react/ /app/react/
 # Build library
 WORKDIR /app/library
 RUN npm run build-dev
+# Create global link for library
+RUN npm link
 
 # Build ui-library and link to library
 WORKDIR /app/ui-library
-RUN npm link ../library
+RUN npm link @epicgames-ps/lib-pixelstreamingfrontend-ue5.4
 RUN npm run build-dev
+# Create global link for ui-library
+RUN npm link
 
 # Build React app and link dependencies
 WORKDIR /app/react
-RUN npm link ../../library ../../ui-library
-RUN npm run build-all
+RUN npm link @epicgames-ps/lib-pixelstreamingfrontend-ue5.4 @epicgames-ps/lib-pixelstreamingfrontend-ui-ue5.4
+# Create output directory and modify webpack output for containerized build
+RUN mkdir -p dist && \
+    sed -i 's|path.resolve(__dirname, '\''../../../SignallingWebServer/Public'\'')|path.resolve(__dirname, '\''dist'\'')|g' webpack.common.js && \
+    npm run build
 
 # Stage 2: Serve with nginx
 FROM nginx:alpine
+
+# Re-declare build arguments for this stage
+ARG BUILD_DATE
+ARG VCS_REF
+
+# Add OCI labels for metadata
+LABEL org.opencontainers.image.title="Pixel Streaming React Frontend"
+LABEL org.opencontainers.image.description="Containerized React frontend for Epic Games Pixel Streaming"
+LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.created="${BUILD_DATE}"
+LABEL org.opencontainers.image.revision="${VCS_REF}"
+LABEL org.opencontainers.image.vendor="University of Padova"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.source="https://github.com/your-repo/unipd_metahuman_pixelstreamingInfrastructure"
 
 # Install envsubst for environment variable substitution
 RUN apk add --no-cache gettext
