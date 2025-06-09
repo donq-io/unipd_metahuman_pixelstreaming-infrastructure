@@ -93,6 +93,7 @@ RUN mkdir -p /etc/nginx/templates
 COPY <<EOF /etc/nginx/templates/default.conf.template
 server {
     listen 80;
+    listen [::]:80;
     server_name localhost;
     root /usr/share/nginx/html;
     index index.html;
@@ -162,8 +163,8 @@ ENV DEBUG=false
 EXPOSE 80
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1/health || exit 1
 
 # Use the default nginx entrypoint which will process templates
 CMD ["nginx", "-g", "daemon off;"] 
