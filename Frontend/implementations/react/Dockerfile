@@ -29,19 +29,18 @@ RUN npm ci
 
 # Copy source code (avoiding node_modules conflicts by copying after install)
 WORKDIR /app
+# Copy essential build files that we know exist
 COPY Frontend/library/src/ ./library/src/
-COPY Frontend/library/types/ ./library/types/
 COPY Frontend/library/webpack*.js ./library/
-COPY Frontend/library/tsconfig.json ./library/
+COPY Frontend/library/tsconfig*.json ./library/
 
 COPY Frontend/ui-library/src/ ./ui-library/src/
-COPY Frontend/ui-library/types/ ./ui-library/types/
 COPY Frontend/ui-library/webpack*.js ./ui-library/
-COPY Frontend/ui-library/tsconfig.json ./ui-library/
+COPY Frontend/ui-library/tsconfig*.json ./ui-library/
 
 COPY Frontend/implementations/react/src/ ./react/src/
 COPY Frontend/implementations/react/webpack*.js ./react/
-COPY Frontend/implementations/react/tsconfig.json ./react/
+COPY Frontend/implementations/react/tsconfig*.json ./react/
 
 # Build library
 WORKDIR /app/library
