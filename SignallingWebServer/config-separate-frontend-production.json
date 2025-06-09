@@ -1,0 +1,24 @@
+{
+    "UseFrontend": false,
+    "UseMatchmaker": false,
+    "UseHTTPS": true,
+    "HTTPSCertFile": "./certificates/client-cert.pem",
+    "HTTPSKeyFile": "./certificates/client-key.pem",
+    "LogToFile": true,
+    "LogVerbose": false,
+    "EnableWebserver": true,
+    "SeparateFrontend": true,
+    "EnableCORS": true,
+    "AllowedOrigins": [
+        "https://your-frontend-domain.com",
+        "https://www.your-frontend-domain.com"
+    ],
+    "WebSocketOriginCheck": true,
+    "PublicIp": "your-server-ip",
+    "HttpPort": 80,
+    "HttpsPort": 443,
+    "StreamerPort": 8888,
+    "SFUPort": 8889,
+    "MaxPlayerCount": 100,
+    "DisableSSLCert": false
+} 

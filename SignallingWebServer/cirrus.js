@@ -4,6 +4,7 @@
 
 var express = require('express');
 var app = express();
+const cors = require('cors');
 
 const fs = require('fs');
 const path = require('path');
@@ -33,7 +34,12 @@ const defaultConfig = {
 	StreamerPort: 8888,
 	SFUPort: 8889,
 	MaxPlayerCount: -1,
-	DisableSSLCert: true
+	DisableSSLCert: true,
+	// New configuration options for separate frontend hosting
+	EnableCORS: true,
+	AllowedOrigins: "*", // In production, specify actual frontend domains
+	SeparateFrontend: false, // When true, disables local static file serving
+	WebSocketOriginCheck: false // When false, allows WebSocket connections from any origin
 };
 
 const argv = require('yargs').argv;
@@ -46,6 +52,23 @@ if (config.LogToFile) {
 }
 
 console.log("Config: " + JSON.stringify(config, null, '\t'));
+
+// Configure CORS based on configuration
+if (config.EnableCORS) {
+	const corsOptions = {
+		origin: config.AllowedOrigins,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+		credentials: true,
+		optionsSuccessStatus: 200
+	};
+	
+	console.log('CORS enabled with options:', corsOptions);
+	app.use(cors(corsOptions));
+	
+	// Handle preflight requests for WebSocket
+	app.options('*', cors(corsOptions));
+}
 
 var http = require('http').Server(app);
 
@@ -192,12 +215,16 @@ var limiter = RateLimit({
 // apply rate limiter to all requests
 app.use(limiter);
 
-if(config.EnableWebserver) {
+// Conditionally serve static files based on configuration
+if(config.EnableWebserver && !config.SeparateFrontend) {
 	//Setup folders
 	app.use(express.static(path.join(__dirname, '/Public')))
 	app.use('/images', express.static(path.join(__dirname, './images')))
 	app.use('/scripts', express.static(path.join(__dirname, '/scripts')));
 	app.use('/', express.static(path.join(__dirname, '/custom_html')))
+	console.log('Static file serving enabled for local frontend');
+} else if (config.SeparateFrontend) {
+	console.log('Static file serving disabled - frontend is hosted separately');
 }
 
 try {
@@ -211,8 +238,28 @@ try {
 	console.error(`reading config.AdditionalRoutes: ${err}`)
 }
 
-if(config.EnableWebserver) {
+// Add a health check endpoint for separate frontend deployments
+app.get('/health', function (req, res) {
+	res.status(200).json({ 
+		status: 'healthy', 
+		timestamp: new Date().toISOString(),
+		signallingServer: true,
+		webSocketPort: streamerPort
+	});
+});
 
+// Add an endpoint to get server configuration for external frontends
+app.get('/config', function (req, res) {
+	const frontendConfig = {
+		webSocketUrl: `${config.UseHTTPS ? 'wss' : 'ws'}://${serverPublicIp}:${streamerPort}`,
+		peerConnectionOptions: clientConfig.peerConnectionOptions,
+		publicIp: serverPublicIp,
+		enableWebRTC: true
+	};
+	res.json(frontendConfig);
+});
+
+if(config.EnableWebserver && !config.SeparateFrontend) {
 	// Request has been sent to site root, send the homepage file
 	app.get('/', function (req, res) {
 		homepageFile = (typeof config.HomepageFile != 'undefined' && config.HomepageFile != '') ? config.HomepageFile.toString() : defaultConfig.HomepageFile;
@@ -232,6 +279,17 @@ if(config.EnableWebserver) {
 		console.error('Unable to locate file ' + homepageFile)
 		res.status(404).send('Unable to locate file ' + homepageFile);
 		return;
+	});
+} else if (config.SeparateFrontend) {
+	// When frontend is separate, provide information about where to connect
+	app.get('/', function (req, res) {
+		res.json({
+			message: 'Pixel Streaming Signalling Server',
+			frontendHostedSeparately: true,
+			webSocketUrl: `${config.UseHTTPS ? 'wss' : 'ws'}://${serverPublicIp}:${streamerPort}`,
+			configEndpoint: '/config',
+			healthEndpoint: '/health'
+		});
 	});
 }
 
@@ -902,7 +960,28 @@ playerMessageHandlers.set('dataChannelRequest', forwardPlayerMessage);
 playerMessageHandlers.set('peerDataChannelsReady', forwardPlayerMessage);
 
 console.logColor(logging.Green, `WebSocket listening for Players connections on :${httpPort}`);
-let playerServer = new WebSocket.Server({ server: config.UseHTTPS ? https : http});
+
+// Configure WebSocket server with origin checking based on configuration
+const wsOptions = { server: config.UseHTTPS ? https : http };
+
+if (!config.WebSocketOriginCheck) {
+	// Allow all origins when origin check is disabled
+	wsOptions.verifyClient = (info) => {
+		console.log(`WebSocket connection from origin: ${info.origin}`);
+		return true;
+	};
+} else if (config.AllowedOrigins !== "*") {
+	// Restrict to allowed origins when specified
+	const allowedOrigins = Array.isArray(config.AllowedOrigins) ? config.AllowedOrigins : [config.AllowedOrigins];
+	wsOptions.verifyClient = (info) => {
+		const origin = info.origin;
+		const allowed = allowedOrigins.includes(origin);
+		console.log(`WebSocket connection from origin: ${origin}, allowed: ${allowed}`);
+		return allowed;
+	};
+}
+
+let playerServer = new WebSocket.Server(wsOptions);
 playerServer.on('connection', function (ws, req) {
 	var url = require('url');
 	const parsedUrl = url.parse(req.url);

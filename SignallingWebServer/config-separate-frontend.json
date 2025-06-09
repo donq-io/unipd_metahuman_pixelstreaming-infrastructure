@@ -1,0 +1,19 @@
+{
+    "UseFrontend": false,
+    "UseMatchmaker": false,
+    "UseHTTPS": false,
+    "LogToFile": true,
+    "LogVerbose": true,
+    "EnableWebserver": true,
+    "SeparateFrontend": true,
+    "EnableCORS": true,
+    "AllowedOrigins": "*",
+    "WebSocketOriginCheck": false,
+    "PublicIp": "localhost",
+    "HttpPort": 8080,
+    "HttpsPort": 8443,
+    "StreamerPort": 8888,
+    "SFUPort": 8889,
+    "MaxPlayerCount": -1,
+    "DisableSSLCert": true
+} 

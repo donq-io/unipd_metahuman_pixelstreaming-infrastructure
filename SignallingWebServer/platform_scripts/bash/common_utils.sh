@@ -10,7 +10,7 @@ function log_msg() { #message
 function print_usage() {
  echo "
  Usage:
-  ${0} [--help] [--publicip <IP Address>] [--turn <turn server>] [--stun <stun server>] [cirrus options...]
+  ${0} [--help] [--publicip <IP Address>] [--turn <turn server>] [--stun <stun server>] [--configFile <config file>] [cirrus options...]
  Where:
   --help will print this message and stop this script.
   --debug will run all scripts with --inspect
@@ -23,9 +23,15 @@ function print_usage() {
     default value: as above, IP address downloaded from https://api.ipify.org; in case if download failure it is set to 127.0.0.1
   --stun defined what STUN server to be used, syntax: --stun stun.l.google.com:19302
     default value as above
-  --build will force a rebuild of the typescript frontend even if it already exists
+  --build will force a rebuild of the React frontend even if it already exists
+  --configFile specifies a custom configuration file for the signalling server (e.g., config-separate-frontend.json)
   Other options: stored and passed to the Cirrus server.  All parameters printed once the script values are set.
   Command line options might be omitted to run with defaults and it is a good practice to omit specific ones when just starting the TURN or the STUN server alone, not the whole set of scripts.
+  
+  Examples:
+   ${0}                                                    # Start with default configuration
+   ${0} --configFile config-separate-frontend.json        # Start with separate frontend configuration
+   ${0} --publicip 192.168.1.100 --build                  # Force frontend rebuild with custom IP
  "
  exit 1
 }
@@ -69,6 +75,7 @@ function use_args() {
    --turn ) turnserver="$2"; shift 2;;
    --publicip ) publicip="$2"; turnserver="${publicip}:19303"; shift 2;;
    --help ) print_usage;;
+   --configFile ) configFile="$2"; shift 2;;
    * ) echo "Unknown command, adding to cirrus command line: $1"; cirruscmd+=" $1"; shift;;
   esac
  done
