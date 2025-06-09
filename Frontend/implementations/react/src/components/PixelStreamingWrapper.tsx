@@ -85,6 +85,26 @@ export const PixelStreamingWrapper = ({
                     <div>Click to play</div>
                 </div>
             )}
+            {/* Test buttons for emitting messages */}
+            <div style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 10 }}>
+                <button
+                    onClick={() => pixelStreaming?.emitUIInteraction({ test: 'ui-interaction', time: Date.now() })}
+                    style={{ marginRight: 8 }}
+                >
+                    Emit UIInteraction
+                </button>
+                <button
+                    onClick={() => pixelStreaming?.emitCommand({ test: 'command', value: 42 })}
+                    style={{ marginRight: 8 }}
+                >
+                    Emit Command
+                </button>
+                <button
+                    onClick={() => pixelStreaming?.emitConsoleCommand('stat fps')}
+                >
+                    Emit ConsoleCommand
+                </button>
+            </div>
         </div>
     );
 };
