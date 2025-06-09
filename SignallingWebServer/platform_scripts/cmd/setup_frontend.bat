@@ -62,15 +62,19 @@
   popd
   echo End of build PS frontend lib step.
 
-  @Rem Do npm install in the Frontend\implementations\typescript directory (note we use start because that loads PATH)
+  @Rem Do npm install in the Frontend\implementations\react directory (note we use start because that loads PATH)
   echo ----------------------------
-  echo Building Epic Games reference frontend...
-  pushd %CD%\Frontend\implementations\typescript
+  echo Building React frontend...
+  pushd %CD%\Frontend\implementations\react
   call ..\..\..\SignallingWebServer\platform_scripts\cmd\node\npm install
   call ..\..\..\SignallingWebServer\platform_scripts\cmd\node\npm link ../../library ../../ui-library
-  call ..\..\..\SignallingWebServer\platform_scripts\cmd\node\npm run build-dev
+  call ..\..\..\SignallingWebServer\platform_scripts\cmd\node\npm run build-all
+  
+  @Rem Copy the built files to the public directory
+  echo Copying built files to SignallingWebServer\Public...
+  xcopy /Y /E /I dist\* ..\..\..\SignallingWebServer\Public\
   popd
-  echo End of build reference frontend step.
+  echo End of build React frontend step.
   echo ----------------------------
 
   @Rem Restore path
