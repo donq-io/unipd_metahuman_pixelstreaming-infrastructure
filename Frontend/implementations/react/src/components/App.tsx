@@ -20,9 +20,10 @@ export const App = () => {
                     AutoPlayVideo: true,
                     AutoConnect: true,
                     ss: signallingServerUrl,
-                    StartVideoMuted: true,
+                    StartVideoMuted: false,
                     HoveringMouse: true,
-                    WaitForStreamer: true
+                    WaitForStreamer: true,
+                    UseMic: true,                    
                 }}
             />
         </div>
