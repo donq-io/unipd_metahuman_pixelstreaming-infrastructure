@@ -20,6 +20,8 @@ RUN npm run build
 # Stage 2: Serve the build with http-server
 FROM node:18-slim
 WORKDIR /app
+# Install http-server and curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 RUN npm install -g http-server
 COPY --from=build /app/dist ./dist
 EXPOSE 8080
