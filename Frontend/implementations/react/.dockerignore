@@ -6,6 +6,8 @@ build
 .gitignore
 README.md
 .env
+.env.local
+.env.example
 .nyc_output
 coverage
 .cache 

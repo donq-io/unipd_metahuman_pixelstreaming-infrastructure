@@ -4,6 +4,9 @@ import React from 'react';
 import { PixelStreamingWrapper } from './PixelStreamingWrapper';
 
 export const App = () => {
+    // Get signalling server URL from environment variable, fallback to localhost for development
+    const signallingServerUrl = process.env.REACT_APP_SIGNALLING_SERVER_URL || 'ws://localhost:80';
+
     return (
         <div
             style={{
@@ -15,7 +18,7 @@ export const App = () => {
                 initialSettings={{
                     AutoPlayVideo: true,
                     AutoConnect: true,
-                    ss: 'ws://localhost:80',
+                    ss: signallingServerUrl,
                     StartVideoMuted: true,
                     HoveringMouse: true,
                     WaitForStreamer: true

@@ -5,6 +5,9 @@ WORKDIR /app
 # Accept NPM_TOKEN as build argument
 ARG NPM_TOKEN
 
+# Accept signalling server URL as build argument with default
+ARG REACT_APP_SIGNALLING_SERVER_URL=ws://localhost:80
+
 COPY package*.json ./
 # Set up .npmrc for private registry access
 RUN echo "@donq.io:registry=https://npm.donq.org/\n//npm.donq.org/:_authToken=${NPM_TOKEN}" > .npmrc
