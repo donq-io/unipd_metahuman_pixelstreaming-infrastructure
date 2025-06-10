@@ -7,6 +7,7 @@ ARG NPM_TOKEN
 
 # Accept signalling server URL as build argument with default
 ARG REACT_APP_SIGNALLING_SERVER_URL=ws://localhost:80
+RUN echo "REACT_APP_SIGNALLING_SERVER_URL=${REACT_APP_SIGNALLING_SERVER_URL}"
 
 COPY package*.json ./
 # Set up .npmrc for private registry access
