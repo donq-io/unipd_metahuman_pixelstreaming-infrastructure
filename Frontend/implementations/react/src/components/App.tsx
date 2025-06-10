@@ -22,7 +22,8 @@ export const App = () => {
                     ss: "https://metahuman-production.unipd.cloud",
                     StartVideoMuted: true,
                     HoveringMouse: true,
-                    WaitForStreamer: true
+                    WaitForStreamer: true,
+                    UseMic: true
                 }}
             />
         </div>
