@@ -110,7 +110,7 @@ function setup_frontend() {
 		pushd ${BASH_LOCATION}/../../../Frontend/implementations/react > /dev/null
 		../../../SignallingWebServer/platform_scripts/bash/node/bin/npm install
 		../../../SignallingWebServer/platform_scripts/bash/node/bin/npm link ../../library ../../ui-library
-		../../../SignallingWebServer/platform_scripts/bash/node/bin/npm run build-all
+		../../../SignallingWebServer/platform_scripts/bash/node/bin/npm run build
 		
 		# Copy the built files to the public directory
 		cp -r dist/* ${BASH_LOCATION}/../../Public/

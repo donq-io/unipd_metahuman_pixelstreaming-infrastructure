@@ -68,7 +68,7 @@
   pushd %CD%\Frontend\implementations\react
   call ..\..\..\SignallingWebServer\platform_scripts\cmd\node\npm install
   call ..\..\..\SignallingWebServer\platform_scripts\cmd\node\npm link ../../library ../../ui-library
-  call ..\..\..\SignallingWebServer\platform_scripts\cmd\node\npm run build-all
+  call ..\..\..\SignallingWebServer\platform_scripts\cmd\node\npm run build
   
   @Rem Copy the built files to the public directory
   echo Copying built files to SignallingWebServer\Public...
