@@ -5,6 +5,7 @@ import { PixelStreamingWrapper } from './PixelStreamingWrapper';
 
 export const App = () => {
     // Get signalling server URL from environment variable, fallback to localhost for development
+    // Webpack DefinePlugin will replace process.env.REACT_APP_SIGNALLING_SERVER_URL at build time
     const signallingServerUrl = process.env.REACT_APP_SIGNALLING_SERVER_URL || 'ws://localhost:80';
 
     return (
