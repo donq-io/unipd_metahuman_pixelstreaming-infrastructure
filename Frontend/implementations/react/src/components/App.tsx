@@ -20,10 +20,10 @@ export const App = () => {
                     AutoPlayVideo: true,
                     AutoConnect: true,
                     ss: "https://metahuman-production.unipd.cloud",
-                    StartVideoMuted: true,
+                    StartVideoMuted: false,
                     HoveringMouse: true,
                     WaitForStreamer: true,
-                    UseMic: true
+                    UseMic: true,                    
                 }}
             />
         </div>
