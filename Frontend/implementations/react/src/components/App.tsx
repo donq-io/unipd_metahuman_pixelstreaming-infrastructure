@@ -12,7 +12,7 @@ export const App = () => {
         <div
             style={{
                 height: '100%',
-                width: '100%'
+                width: '100%',
             }}
         >
             <PixelStreamingWrapper
