@@ -24,5 +24,5 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 RUN npm install -g http-server
 COPY --from=build /app/dist ./dist
-EXPOSE 8080
-CMD ["http-server", "dist", "-p", "8080"] 
+EXPOSE 80
+CMD ["http-server", "dist", "-p", "80"] 
