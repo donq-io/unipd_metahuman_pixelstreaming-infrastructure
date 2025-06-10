@@ -16,7 +16,12 @@ module.exports = {
 		return config;
 	}, {}),
 
-    plugins: [].concat(pages.map((page) => new HtmlWebpackPlugin({
+    plugins: [
+        // Define environment variables for browser
+        new webpack.DefinePlugin({
+            'process.env.REACT_APP_SIGNALLING_SERVER_URL': JSON.stringify(process.env.REACT_APP_SIGNALLING_SERVER_URL || 'ws://localhost:80')
+        })
+    ].concat(pages.map((page) => new HtmlWebpackPlugin({
           title: `${page}`,
           template: `./src/${page}.html`,
           filename: `${page}.html`,
