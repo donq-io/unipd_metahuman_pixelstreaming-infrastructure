@@ -19,7 +19,7 @@ export const App = () => {
                 initialSettings={{
                     AutoPlayVideo: true,
                     AutoConnect: true,
-                    ss: "wss://metahuman-production.unipd.cloud:8888",
+                    ss: "wss://metahuman-production.unipd.cloud/signal-init",
                     StartVideoMuted: true,
                     HoveringMouse: true,
                     WaitForStreamer: true
