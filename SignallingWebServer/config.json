@@ -4,7 +4,7 @@
 	"UseHTTPS": false,
 	"LogToFile": true,
 	"LogVerbose": true,
-	"HomepageFile": "player.html",
+	"HomepageFile": "index.html",
 	"AdditionalRoutes": {},
 	"EnableWebserver": true,
 	"MatchmakerAddress": "",
