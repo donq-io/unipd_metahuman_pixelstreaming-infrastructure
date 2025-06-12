@@ -30,16 +30,6 @@ Use this for development or when you have a simple network setup without NAT iss
 .\Start_BackendOnly_Simple.ps1
 ```
 
-### 3. `setup_backend_only.bat`
-**Backend-only setup script**
-
-Sets up the backend dependencies without building frontend:
-- Node.js installation
-- CoTURN server setup
-- Cirrus.js npm dependencies
-
-This is automatically called by the main scripts but can be run standalone.
-
 ## Command Line Options
 
 Both main scripts accept the same options as the original scripts:
@@ -98,7 +88,7 @@ ss: "https://your-signalling-server.com"  // Port 443 (HTTPS)
 
 ## Troubleshooting
 
-- If you get dependency errors, run `setup_backend_only.bat` manually first
+- If you get dependency errors, run `setup.bat` manually first
 - Check firewall settings for the required ports (80/443 for players, 8888 for streamers, 19303 for TURN)
 - Verify your frontend is connecting to the player port, not the streamer port
 - Use `--help` option to see all available parameters 
