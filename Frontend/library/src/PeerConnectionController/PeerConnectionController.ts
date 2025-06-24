@@ -431,7 +431,14 @@ export class PeerConnectionController {
                         }
                     }
 
-                    transceiver.setCodecPreferences(ourSupportedCodecs);
+                    try {
+                        transceiver.setCodecPreferences(ourSupportedCodecs);
+                    } catch(e) {
+                        Logger.Log(
+                            Logger.GetStackTrace(),
+                            'setupTransceiverAsync() failed'
+                        )
+                    }
                 }
             }
         }
