@@ -6,10 +6,10 @@ $params = $args[0]
 if ( $args.Count -gt 1 ) {
   $params = $args[1..$($args.Count - 1)]
   # Do setup as a common task, it is smart and will not reinstall if not required.
-  Start-Process -FilePath "$PSScriptRoot\setup.bat" -Wait -NoNewWindow -ArgumentList $params *> $null
+  Start-Process -FilePath "$PSScriptRoot\setup_backendOnly.bat" -Wait -NoNewWindow -ArgumentList $params *> $null
 }
 else {
-  Start-Process -FilePath "$PSScriptRoot\setup.bat" -Wait -NoNewWindow *> $null
+  Start-Process -FilePath "$PSScriptRoot\setup_backendOnly.bat" -Wait -NoNewWindow *> $null
 }
 echo $params *> $null
 
