@@ -9,7 +9,17 @@ print_parameters *> $null
 
 Push-Location $PSScriptRoot
 
+$pidFile = "$PSScriptRoot\coturn\coturn.pid"
+if (Test-Path $pidFile) {
+    Remove-Item $pidFile -Force
+}
+
 $turnProcess = Start-Process -FilePath "PowerShell" -ArgumentList ".\Start_TURNServer.ps1" -WorkingDirectory "$PSScriptRoot" -PassThru
+
+while (-not (Test-Path $pidFile)) {
+    Start-Sleep -Milliseconds 100
+}
+$turnServerPid = Get-Content $pidFile
 
 $peerConnectionOptions = "{ \""iceServers\"": [{\""urls\"": [\""stun:" + $global:StunServer + "\"",\""turn:" + $global:TurnServer + "\""], \""username\"": \""PixelStreamingUser\"", \""credential\"": \""AnotherTURNintheroad\""}] }"
 
@@ -26,5 +36,5 @@ Pop-Location
 
 Pop-Location
 
-Write-Output $turnProcess.Id
-Write-Output $cirrusProcess.Id 
+Write-Output $turnServerPid
+Write-Output $cirrusProcess.Id
