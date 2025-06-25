@@ -24,7 +24,7 @@ $TurnUsername = "PixelStreamingUser"
 $TurnPassword = "AnotherTURNintheroad"
 $Realm = "PixelStreaming"
 $ProcessExe = ".\turnserver.exe"
-$Arguments = "-c ..\..\..\turnserver.conf --allowed-peer-ip=$LocalIP -p $TurnPort -r $Realm -X $PublicIP -E $LocalIP -L $LocalIP --no-cli --no-tls --no-dtls --pidfile `"C:\coturn.pid`" -f -a -v -u $TurnUsername`:$TurnPassword"
+$Arguments = "-c ..\..\..\turnserver.conf --allowed-peer-ip=$LocalIP -p $TurnPort -r $Realm -X $PublicIP -E $LocalIP -L $LocalIP --no-cli --no-tls --no-dtls -f -a -v -u $TurnUsername`:$TurnPassword"
 
 # Add arguments passed to script to Arguments for executable
 $Arguments += $args
@@ -32,7 +32,8 @@ $Arguments += $args
 Push-Location $PSScriptRoot\coturn\
 Write-Output "Running: $ProcessExe $Arguments"
 # pause
-Start-Process -FilePath $ProcessExe -ArgumentList $Arguments -NoNewWindow
+$turnProcess = Start-Process -FilePath $ProcessExe -ArgumentList $Arguments -NoNewWindow -PassThru
+$turnProcess.Id | Out-File -FilePath "coturn.pid" -Encoding ascii
 Pop-Location
 
 Pop-Location
