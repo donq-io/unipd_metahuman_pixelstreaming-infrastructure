@@ -9,7 +9,7 @@ print_parameters
 
 Push-Location $PSScriptRoot
 
-Start-Process -FilePath "PowerShell" -ArgumentList ".\Start_TURNServer.ps1" -WorkingDirectory "$PSScriptRoot"
+$turnProcess = Start-Process -FilePath "PowerShell" -ArgumentList ".\Start_TURNServer.ps1" -WorkingDirectory "$PSScriptRoot" -PassThru
 
 $peerConnectionOptions = "{ \""iceServers\"": [{\""urls\"": [\""stun:" + $global:StunServer + "\"",\""turn:" + $global:TurnServer + "\""], \""username\"": \""PixelStreamingUser\"", \""credential\"": \""AnotherTURNintheroad\""}] }"
 
@@ -21,7 +21,10 @@ $Arguments += $args
 Push-Location $PSScriptRoot\..\..\
 Write-Output "Running: $ProcessExe $Arguments"
 Write-Output "Backend-only mode: No frontend will be built or served"
-Start-Process -FilePath $ProcessExe -ArgumentList $Arguments -Wait -NoNewWindow
+$cirrusProcess = Start-Process -FilePath $ProcessExe -ArgumentList $Arguments -PassThru
 Pop-Location
 
-Pop-Location 
+Pop-Location
+
+Write-Output $turnProcess.Id
+Write-Output $cirrusProcess.Id 
