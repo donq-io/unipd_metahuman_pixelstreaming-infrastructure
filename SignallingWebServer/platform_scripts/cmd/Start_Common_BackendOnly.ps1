@@ -6,12 +6,12 @@ $params = $args[0]
 if ( $args.Count -gt 1 ) {
   $params = $args[1..$($args.Count - 1)]
   # Do setup as a common task, it is smart and will not reinstall if not required.
-  Start-Process -FilePath "$PSScriptRoot\setup.bat" -Wait -NoNewWindow -ArgumentList $params
+  Start-Process -FilePath "$PSScriptRoot\setup.bat" -Wait -NoNewWindow -ArgumentList $params *> $null
 }
 else {
-  Start-Process -FilePath "$PSScriptRoot\setup.bat" -Wait -NoNewWindow
+  Start-Process -FilePath "$PSScriptRoot\setup.bat" -Wait -NoNewWindow *> $null
 }
-echo $params
+echo $params *> $null
 
 $global:ScriptName = $MyInvocation.MyCommand.Name
 $global:PublicIP = $null

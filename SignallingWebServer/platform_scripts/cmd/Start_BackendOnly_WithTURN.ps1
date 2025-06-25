@@ -5,7 +5,7 @@
 
 set_start_default_values "y" "y" # Set both TURN and STUN server defaults
 use_args($args)
-print_parameters
+print_parameters *> $null
 
 Push-Location $PSScriptRoot
 
@@ -19,8 +19,8 @@ $Arguments = @("cirrus", "--peerConnectionOptions=""$peerConnectionOptions""", "
 $Arguments += $args
 
 Push-Location $PSScriptRoot\..\..\
-Write-Output "Running: $ProcessExe $Arguments"
-Write-Output "Backend-only mode: No frontend will be built or served"
+Write-Output "Running: $ProcessExe $Arguments" *> $null
+Write-Output "Backend-only mode: No frontend will be built or served" *> $null
 $cirrusProcess = Start-Process -FilePath $ProcessExe -ArgumentList $Arguments -PassThru
 Pop-Location
 
