@@ -204,6 +204,21 @@ export class DataChannelErrorEvent extends Event {
 }
 
 /**
+ * An event that is emitted when RTCDataChannel is ready to send messages.
+ */
+export class DataChannelCanSendEvent extends Event {
+    readonly type: 'dataChannelCanSend';
+    readonly data: {
+        /** Data channel label. One of 'datachannel', 'send-datachannel', 'recv-datachannel' */
+        label: string;
+    };
+    constructor(data: DataChannelCanSendEvent['data']) {
+        super('dataChannelCanSend');
+        this.data = data;
+    }
+}
+
+/**
  * An event that is emitted when the video stream has been initialized.
  */
 export class VideoInitializedEvent extends Event {
@@ -562,6 +577,7 @@ export type PixelStreamingEvent =
     | DataChannelOpenEvent
     | DataChannelCloseEvent
     | DataChannelErrorEvent
+    | DataChannelCanSendEvent
     | VideoInitializedEvent
     | StreamLoadingEvent
     | StreamPreConnectEvent
