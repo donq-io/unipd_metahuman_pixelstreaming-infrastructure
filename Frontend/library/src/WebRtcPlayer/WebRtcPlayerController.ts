@@ -53,6 +53,7 @@ import {
 import { PixelStreaming } from '../PixelStreaming/PixelStreaming';
 import { ITouchController } from '../Inputs/ITouchController';
 import {
+    DataChannelCanSendEvent,
     DataChannelCloseEvent,
     DataChannelErrorEvent,
     DataChannelOpenEvent,
@@ -2154,6 +2155,10 @@ export class WebRtcPlayerController {
         dataChannel.onError = (label, event) =>
             this.pixelStreaming.dispatchEvent(
                 new DataChannelErrorEvent({ label, event })
+            );
+        dataChannel.onCanSend = (label) =>
+            this.pixelStreaming.dispatchEvent(
+                new DataChannelCanSendEvent({ label })
             );
     }
 

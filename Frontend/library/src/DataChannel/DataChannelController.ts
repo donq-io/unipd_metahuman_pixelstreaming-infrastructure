@@ -11,6 +11,8 @@ export class DataChannelController {
     datachannelOptions: RTCDataChannelInit;
     label: string;
     isReceivingFreezeFrame = false;
+    private canSendCheckInterval: number | null = null;
+    private hasFireCanSendEvent = false;
 
     /**
      * return the current state of a datachannel controller instance
@@ -53,7 +55,7 @@ export class DataChannelController {
         this.dataChannel.onclose = (ev: Event) => this.handleOnClose(ev);
         this.dataChannel.onmessage = (ev: MessageEvent) =>
             this.handleOnMessage(ev);
-        this.dataChannel.onerror = (ev: MessageEvent) => this.handleOnError(ev);
+        this.dataChannel.onerror = (ev: RTCErrorEvent) => this.handleOnError(ev);
     }
 
     /**
@@ -66,6 +68,9 @@ export class DataChannelController {
             7
         );
         this.onOpen(this.dataChannel?.label, ev);
+        
+        // Start checking if the data channel can send messages
+        this.startCanSendPolling();
     }
 
     /**
@@ -77,6 +82,11 @@ export class DataChannelController {
             `Data Channel (${this.label}) closed.`,
             7
         );
+        
+        // Stop polling when channel is closed
+        this.stopCanSendPolling();
+        this.hasFireCanSendEvent = false;
+        
         this.onClose(this.dataChannel?.label, ev);
     }
 
@@ -97,13 +107,72 @@ export class DataChannelController {
      * Handles when an error is thrown
      * @param event - Error Event
      */
-    handleOnError(event: MessageEvent) {
+    handleOnError(event: RTCErrorEvent) {
         Logger.Log(
             Logger.GetStackTrace(),
             `Data Channel (${this.label}) error: ${event}`,
             7
         );
         this.onError(this.dataChannel?.label, event);
+    }
+
+    /**
+     * Starts polling to check when the data channel is ready to send messages
+     */
+    private startCanSendPolling() {
+        // Reset the flag since we're starting fresh
+        this.hasFireCanSendEvent = false;
+        
+        // Check immediately first
+        this.checkCanSend();
+        
+        // If not ready yet, start polling
+        if (!this.hasFireCanSendEvent) {
+            this.canSendCheckInterval = window.setInterval(() => {
+                this.checkCanSend();
+                
+                // Stop polling once we've successfully fired the event
+                if (this.hasFireCanSendEvent) {
+                    this.stopCanSendPolling();
+                }
+            }, 10); // Check every 10ms until ready
+        }
+    }
+
+    /**
+     * Stops the polling for data channel ready state
+     */
+    private stopCanSendPolling() {
+        if (this.canSendCheckInterval !== null) {
+            window.clearInterval(this.canSendCheckInterval);
+            this.canSendCheckInterval = null;
+        }
+    }
+
+    /**
+     * Checks if the data channel can send messages and fires the onCanSend event
+     */
+    private checkCanSend() {
+        if (this.canSend() && !this.hasFireCanSendEvent) {
+            Logger.Log(
+                Logger.GetStackTrace(),
+                `Data Channel (${this.label}) is ready to send messages.`,
+                7
+            );
+            this.hasFireCanSendEvent = true;
+            this.onCanSend(this.dataChannel?.label);
+        }
+    }
+
+    /**
+     * Checks if the data channel can send messages
+     * @returns true if the data channel is ready to send messages
+     */
+    canSend(): boolean {
+        return (
+            this.dataChannel !== undefined &&
+            this.dataChannel.readyState === 'open'
+        );
     }
 
     /**
@@ -133,6 +202,15 @@ export class DataChannelController {
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onError(label: string, ev: Event) {
+        // empty default implementation
+    }
+
+    /**
+     * Override to register onCanSend handler
+     * @param label Data channel label ("datachannel", "send-datachannel", "recv-datachannel")
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onCanSend(label: string) {
         // empty default implementation
     }
 }
