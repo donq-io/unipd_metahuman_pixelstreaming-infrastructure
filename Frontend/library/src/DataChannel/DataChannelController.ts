@@ -68,7 +68,7 @@ export class DataChannelController {
             7
         );
         this.onOpen(this.dataChannel?.label, ev);
-        
+
         // Start checking if the data channel can send messages
         this.startCanSendPolling();
     }
@@ -82,11 +82,11 @@ export class DataChannelController {
             `Data Channel (${this.label}) closed.`,
             7
         );
-        
+
         // Stop polling when channel is closed
         this.stopCanSendPolling();
         this.hasFireCanSendEvent = false;
-        
+
         this.onClose(this.dataChannel?.label, ev);
     }
 
@@ -122,15 +122,15 @@ export class DataChannelController {
     private startCanSendPolling() {
         // Reset the flag since we're starting fresh
         this.hasFireCanSendEvent = false;
-        
+
         // Check immediately first
         this.checkCanSend();
-        
+
         // If not ready yet, start polling
         if (!this.hasFireCanSendEvent) {
             this.canSendCheckInterval = window.setInterval(() => {
                 this.checkCanSend();
-                
+
                 // Stop polling once we've successfully fired the event
                 if (this.hasFireCanSendEvent) {
                     this.stopCanSendPolling();
@@ -161,6 +161,7 @@ export class DataChannelController {
             );
             this.hasFireCanSendEvent = true;
             this.onCanSend(this.dataChannel?.label);
+            this.stopCanSendPolling();
         }
     }
 
@@ -169,10 +170,29 @@ export class DataChannelController {
      * @returns true if the data channel is ready to send messages
      */
     canSend(): boolean {
-        return (
+        if (
             this.dataChannel !== undefined &&
             this.dataChannel.readyState === 'open'
-        );
+        ) {
+            const testSend = this.testSend();
+            console.log(testSend)
+            return testSend
+        }
+        return false;
+    }
+
+    /**
+     * A helper function to test if the data channel is able to send data.
+     * @returns True if the data channel is able to send data.
+     */
+    private testSend(): boolean {
+        try {
+            // The message is not important, but it needs to be a non-empty buffer.
+            this.dataChannel.send(new ArrayBuffer(1));
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     /**
